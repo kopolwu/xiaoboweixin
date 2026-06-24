@@ -4,6 +4,7 @@
 """
 
 import hashlib
+import json
 import random
 import string
 import time
@@ -59,11 +60,13 @@ def parse_doubao_url(video_url: str) -> dict:
     try:
         post_data = _build_signed_body(video_url, video_url)
 
+        body = json.dumps(post_data).encode('utf-8')
         response = requests.post(
             API_HOST + API_PATH,
-            json=post_data,
+            data=body,
             headers={'Content-Type': 'application/json'},
             timeout=30,
+            allow_redirects=False,
         )
         response.raise_for_status()
         return response.json()
