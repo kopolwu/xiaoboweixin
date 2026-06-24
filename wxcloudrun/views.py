@@ -72,21 +72,22 @@ def get_count():
 import re
 
 
-@app.route('/api/doubao/parse', methods=['POST'])
+@app.route('/api/doubao/parse', methods=['GET', 'POST'])
 def doubao_parse():
     """
     解析豆包视频分享链接
-    请求体: {"url": "https://..."}
+    GET:  /api/doubao/parse?url=https://...
+    POST: {"url": "https://..."}
     返回: 上游 API 的原始响应
     """
-    params = request.get_json()
+    if request.method == 'GET':
+        video_url = request.args.get('url', '').strip()
+    else:
+        params = request.get_json()
+        video_url = (params or {}).get('url', '').strip()
 
-    if not params or 'url' not in params:
-        return make_err_response('缺少url参数')
-
-    video_url = params['url'].strip()
     if not video_url:
-        return make_err_response('url不能为空')
+        return make_err_response('缺少url参数')
 
     # 校验 URL 格式
     url_regex = r'(https?://)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9.-]+)+/[\w\-./#?%&=:]+'
