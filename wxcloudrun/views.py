@@ -4,7 +4,7 @@ from run import app
 from wxcloudrun.dao import delete_counterbyid, query_counterbyid, insert_counter, update_counterbyid
 from wxcloudrun.model import Counters
 from wxcloudrun.response import make_succ_empty_response, make_succ_response, make_err_response
-from wxcloudrun.doubao_proxy import parse_doubao_url
+from wxcloudrun.vediodb_proxy import parse_vediodb_url
 
 
 @app.route('/')
@@ -72,11 +72,11 @@ def get_count():
 import re
 
 
-@app.route('/api/doubao/parse', methods=['GET', 'POST'])
-def doubao_parse():
+@app.route('/api/vediodb/parse', methods=['GET', 'POST'])
+def vediodb_parse():
     """
     解析豆包视频分享链接
-    GET:  /api/doubao/parse?url=https://...
+    GET:  /api/vediodb/parse?url=https://...
     POST: {"url": "https://..."}
     返回: 上游 API 的原始响应
     """
@@ -95,7 +95,7 @@ def doubao_parse():
         return make_err_response('链接格式不正确')
 
     # 调用代理解析
-    result = parse_doubao_url(video_url)
+    result = parse_vediodb_url(video_url)
 
     # 直接返回上游 API 的完整响应给小程序端处理
     from flask import Response

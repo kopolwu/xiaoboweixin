@@ -43,7 +43,7 @@ def _build_signed_body(target_url: str, url_text: str = None) -> dict:
     }
 
 
-def parse_doubao_url(video_url: str) -> dict:
+def parse_vediodb_url(video_url: str) -> dict:
     """
     解析豆包视频分享链接，获取无水印视频/图片
 
