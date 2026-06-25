@@ -101,3 +101,29 @@ def vediodb_parse():
     from flask import Response
     import json
     return Response(json.dumps(result), mimetype='application/json')
+
+
+# ==================== 图片内容安全检测 ====================
+
+
+@app.route('/api/imgSecCheck', methods=['POST'])
+def img_sec_check():
+    """
+    图片内容安全检测
+    接收客户端传来的 base64 图片，调用微信 imgSecCheck HTTP API
+    POST: {"imgBase64": "..."}
+    返回: 微信 API 原始响应 {'errcode': 0, 'errmsg': 'ok'} 或 {'errcode': 87014, ...}
+    """
+    from wxcloudrun.img_sec_check import img_sec_check as do_check
+
+    params = request.get_json()
+    img_base64 = (params or {}).get('imgBase64', '')
+
+    if not img_base64:
+        return make_err_response('缺少图片数据')
+
+    result = do_check(img_base64)
+
+    from flask import Response
+    import json
+    return Response(json.dumps(result), mimetype='application/json')
