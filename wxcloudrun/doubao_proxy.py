@@ -30,7 +30,7 @@ def _build_signed_body(target_url: str, url_text: str = None) -> dict:
     """构建签名后的请求体"""
     nonce_str = _generate_nonce_str()
     timestamp = int(time.time())
-    sign_str = f'nonceStr={nonce_str}&timestamp={timestamp}&url={quote(target_url)}'
+    sign_str = f'nonceStr={nonce_str}&timestamp={timestamp}&url={quote(target_url, safe="")}'
     sign = _md5(sign_str)
 
     return {
@@ -64,7 +64,11 @@ def parse_doubao_url(video_url: str) -> dict:
         response = requests.post(
             API_HOST + API_PATH,
             data=body,
-            headers={'Content-Type': 'application/json'},
+            headers={
+                'Content-Type': 'application/json',
+                'User-Agent': '',
+                'Accept-Encoding': 'identity',
+            },
             timeout=30,
             allow_redirects=False,
         )
