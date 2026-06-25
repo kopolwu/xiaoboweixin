@@ -6,6 +6,10 @@ import base64
 import os
 import time
 import requests
+import urllib3
+
+# 云托管容器环境缺少 CA 证书，禁用 SSL 警告
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # 模块级 access_token 缓存
 _token_cache = {
@@ -30,7 +34,7 @@ def _get_access_token() -> str:
         raise Exception('云托管未配置 WX_APPID / WX_APPSECRET 环境变量')
 
     url = f'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={appid}&secret={secret}'
-    resp = requests.get(url, timeout=10)
+    resp = requests.get(url, timeout=10, verify=False)
     data = resp.json()
 
     if 'access_token' not in data:
@@ -71,6 +75,7 @@ def img_sec_check(img_base64: str) -> dict:
             url,
             files={'media': ('image.jpg', img_bytes, 'image/jpeg')},
             timeout=15,
+            verify=False,
         )
         return resp.json()
     except requests.exceptions.Timeout:
