@@ -2,7 +2,6 @@
 图片内容安全检测 - 调用微信 imgSecCheck API（HTTP 版本）
 通过 access_token 调用微信开放平台接口，检测图片是否含有违规内容
 """
-import base64
 import os
 import time
 import requests
@@ -45,29 +44,44 @@ def _get_access_token() -> str:
     return _token_cache['token']
 
 
-def img_sec_check(img_base64: str) -> dict:
+def img_sec_check(img_url: str = '', img_base64: str = '') -> dict:
     """
     调用微信图片内容安全检测 API
 
     Args:
-        img_base64: 图片的 base64 编码字符串（已压缩至 750×1334 以内）
+        img_url: 云存储临时下载链接（优先使用）
+        img_base64: 图片 base64 编码（兼容旧调用，如调试按钮）
 
     Returns:
         dict: 微信 API 原始响应
               {'errcode': 0, 'errmsg': 'ok'} — 内容安全
               {'errcode': 87014, 'errmsg': '...'} — 内容违规
     """
+    import base64
+
+    # 获取图片二进制数据
+    if img_url:
+        try:
+            resp = requests.get(img_url, timeout=15, verify=False)
+            resp.raise_for_status()
+            img_bytes = resp.content
+        except Exception as e:
+            return {'errcode': -1, 'errmsg': '下载云存储图片失败: {}'.format(e)}
+    elif img_base64:
+        try:
+            img_bytes = base64.b64decode(img_base64)
+        except Exception:
+            return {'errcode': -1, 'errmsg': '图片 base64 解码失败'}
+    else:
+        return {'errcode': -1, 'errmsg': '缺少图片数据'}
+
+    # 获取 access_token
     try:
         access_token = _get_access_token()
     except Exception as e:
         return {'errcode': -1, 'errmsg': str(e)}
 
-    # 将 base64 解码为二进制
-    try:
-        img_bytes = base64.b64decode(img_base64)
-    except Exception:
-        return {'errcode': -1, 'errmsg': '图片 base64 解码失败'}
-
+    # 调用微信图片安全检测
     url = f'https://api.weixin.qq.com/wxa/img_sec_check?access_token={access_token}'
 
     try:

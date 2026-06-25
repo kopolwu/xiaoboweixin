@@ -110,19 +110,20 @@ def vediodb_parse():
 def img_sec_check():
     """
     图片内容安全检测
-    接收客户端传来的 base64 图片，调用微信 imgSecCheck HTTP API
-    POST: {"imgBase64": "..."}
+    优先使用 imgUrl（云存储临时链接），兼容 imgBase64（调试按钮）
+    POST: {"imgUrl": "https://..."} 或 {"imgBase64": "..."}
     返回: 微信 API 原始响应 {'errcode': 0, 'errmsg': 'ok'} 或 {'errcode': 87014, ...}
     """
     from wxcloudrun.img_sec_check import img_sec_check as do_check
 
-    params = request.get_json()
-    img_base64 = (params or {}).get('imgBase64', '')
+    params = request.get_json() or {}
+    img_url = params.get('imgUrl', '')
+    img_base64 = params.get('imgBase64', '')
 
-    if not img_base64:
+    if not img_url and not img_base64:
         return make_err_response('缺少图片数据')
 
-    result = do_check(img_base64)
+    result = do_check(img_url=img_url, img_base64=img_base64)
 
     from flask import Response
     import json
